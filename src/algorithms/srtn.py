@@ -1,13 +1,9 @@
-
 from __future__ import annotations
 from typing import List, Tuple, Optional
 from src.model.entities import Process, Segment
 
 def popSrtn(ready: List[Process]) -> Process:
-    """
-    Thuật toán SRTN (Shortest Remaining Time Next): Xếp theo thời gian xử lý còn lại (remaining) từ bé đến lớn.
-    Xử lý hòa kết quả (tie-break): Ưu tiên lần lượt theo thứ tự (remaining -> arrival -> seq).
-    """
+    """Lấy process có thời gian xử lý còn lại (remaining) ngắn nhất; tie-break theo arrival rồi seq (remaining -> arrival -> seq)."""
     if not ready:
         raise ValueError("ready is empty")
 
@@ -21,6 +17,7 @@ def popSrtn(ready: List[Process]) -> Process:
 
     return ready.pop(bestIdx)
 
+
 def srtn(
     queueId: str,
     ready: List[Process],
@@ -30,14 +27,8 @@ def srtn(
     nextArrivalTime: Optional[int],
 ) -> Tuple[int, int]:
     """
-    Thực thi 1 khung thời gian theo thuật toán SRTN trong 1 hàng đợi, có thể bị ngắt (preempted) nếu có tiến trình chờ mới.
-    - Duyệt tiến trình có trạng thái thời gian cần xử lý thấp nhất.
-    - Định mức thời gian chạy (dt) bằng giá trị nhỏ nhất của: thời gian làm việc còn lại, ngân sách chạy cho phép, 
-      hoặc quỹ thời gian tính từ hiện tại cho tới khi có tiến trình mới tới (nextArrivalTime - để ngắt hợp lý).
-    - Tạo phân đoạn hiển thị (Segment).
-    - Điều chỉnh, cập nhật thời lượng xử lý còn lại (remaining) hoặc báo hoàn thành (completion).
-    - Nếu tiến trình thực thi chưa xong trọn vẹn tiến độ -> Đưa lại vào hàng chờ (ready) để đợi tới lượt sau.
-    Trả về bộ kết quả gồm: (Thời gian định vị hiện thời tNew, Quỹ ngân sách đã tiêu hao budgetLeft).
+    Chạy 1 bước SRTN (preemptive). dt bị giới hạn bởi nextArrivalTime
+    để đảm bảo process mới được đưa vào trước khi tiếp tục chọn lịch.
     """
     if budget <= 0 or not ready:
         return t, budget
@@ -50,7 +41,7 @@ def srtn(
     if nextArrivalTime is not None and nextArrivalTime > t:
         dt = min(dt, nextArrivalTime - t)
 
-    # Nếu dt == 0, có nghĩa là thời khắc `t` bằng đúng lúc một tiến trình mới tới `nextArrivalTime`, bộ điều khiển xử lý ngắt sai thứ tự
+    # dt == 0 nghĩa là controller gọi sai thứ tự – trả về ngay, không làm gì
     if dt <= 0:
         ready.append(p)
         return t, budget

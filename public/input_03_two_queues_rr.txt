@@ -1,0 +1,10 @@
+# Test 03: 2 hàng đợi Round-Robin luân phiên, mỗi hàng dùng policy khác nhau
+# Q1 dùng SRTN (time_slice=4), Q2 dùng SJF (time_slice=4)
+# Vòng ngoài: Q1 chạy 4 đơn vị → Q2 chạy 4 đơn vị → lặp lại
+2
+Q1 4 SRTN
+Q2 4 SJF
+P1 0 6 Q1
+P2 0 9 Q2
+P3 2 3 Q1
+P4 3 5 Q2

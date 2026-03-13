@@ -29,10 +29,7 @@ def _run_sjf(
     segments: List[Segment],
     next_arrival_time: Optional[int] = None,
 ) -> Tuple[int, int]:
-    """
-    Hàm trung gian (Adapter) để SJF khớp với khung PolicyRunner.
-    SJF (Shortest Job First) chạy không ngắt nên không cần quan tâm next_arrival_time.
-    """
+    # SJF không quan tâm next_arrival_time (non-preemptive)
     return sjf(queue_id, ready, t, budget, segments)
 
 
@@ -44,10 +41,6 @@ def _run_srtn(
     segments: List[Segment],
     next_arrival_time: Optional[int],
 ) -> Tuple[int, int]:
-    """
-    Hàm trung gian (Adapter) cho SRTN: Truyền thời gian tới của tiến trình tiếp theo (next_arrival_time)
-    xuống srtn để nó có thể quyết định ngắt (preempt) hợp lý.
-    """
     return srtn(queue_id, ready, t, budget, segments, next_arrival_time)
 
 
@@ -58,10 +51,7 @@ _REGISTRY: Dict[str, PolicyRunner] = {
 
 
 def register_policy(name: str, runner: PolicyRunner) -> None:
-    """
-    Cho phép mở rộng (Extensibility): Đăng ký thêm thuật toán mới ở bên ngoài
-    mà không cần phải sửa nội dung code cốt lõi của mạch mô phỏng chính.
-    """
+    """Đăng ký algorithm mới mà không cần chỉnh code lõi."""
     _REGISTRY[name] = runner
 
 
@@ -70,4 +60,3 @@ def get_policy_runner(name: str) -> PolicyRunner:
         return _REGISTRY[name]
     except KeyError:
         raise ValueError(f"Unknown scheduling policy: {name}") from None
-

@@ -1,0 +1,10 @@
+# Test 08: SJF với time_slice nhỏ hơn burst – SJF bị cắt giữa chừng bởi time_slice
+# Q1 time_slice=3 nhưng P1 có burst=8. 
+# Kiểm tra: SJF phải tiếp tục P1 sau khi Round Robin quay lại Q1
+# (Vì chỉ có 1 queue, RR quay lại Q1 ngay)
+# Expected: P1[0-3], P1[3-6], P1[6-8] → completion=8 (segment bị cắt)
+# P2 phải đợi P1 xong từng step
+1
+Q1 3 SJF
+P1 0 8 Q1
+P2 0 4 Q1

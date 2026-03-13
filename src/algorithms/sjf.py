@@ -1,8 +1,3 @@
-# src/algorithms/sjf.py
-"""
-Thuật toán SJF (Shortest Job First) - Ưu tiên tiến trình có thời gian xử lý ngắn nhất.
-"""
-
 from __future__ import annotations
 
 from typing import List, Tuple
@@ -10,10 +5,7 @@ from src.model.entities import Process, Segment
 
 
 def pop_sjf(ready: List[Process]) -> Process:
-    """
-    Lấy ra tiến trình có thời gian xử lý còn lại (remaining) ngắn nhất từ hàng đợi sẵn sàng.
-    Nếu có nhiều tiến trình có cùng remaining, ưu tiên theo thời gian đến (arrival), rồi theo thứ tự (seq).
-    """
+    """Lấy process có remaining ngắn nhất; tie-break ưu tiên theo thời gian đến (arrival), rồi theo thứ tự (seq)."""
     if not ready:
         raise ValueError("ready is empty")
 

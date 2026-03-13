@@ -1,0 +1,9 @@
+# Test 04: Tất cả process đến cùng t=0 – kiểm tra tie-break (seq, arrival)
+# Với SJF: cùng burst=5 → tie-break theo arrival (đều =0) → theo seq (thứ tự đọc file)
+# Expected order: P1 → P2 → P3 → P4 (FIFO khi burst bằng nhau)
+1
+Q1 50 SJF
+P1 0 5 Q1
+P2 0 5 Q1
+P3 0 5 Q1
+P4 0 5 Q1

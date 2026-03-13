@@ -1,0 +1,15 @@
+# Test 09: 3 hàng đợi đa dạng – giống input mặc định nhưng đa dạng hơn
+# Q1=SRTN(8), Q2=SJF(5), Q3=SJF(3)
+# Nhiều tiến trình rải rác vào các hàng đợi khác nhau
+# Kiểm tra: RR 3 chiều, preempt trong Q1, non-preempt trong Q2 & Q3
+3
+Q1 8 SRTN
+Q2 5 SJF
+Q3 3 SJF
+P1 0 12 Q1
+P2 1 6 Q1
+P3 2 8 Q2
+P4 3 4 Q2
+P5 4 10 Q3
+P6 5 3 Q3
+P7 6 5 Q1

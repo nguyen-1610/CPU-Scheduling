@@ -1,13 +1,10 @@
-
 from __future__ import annotations
 from typing import List
 from src.model.entities import Segment, Process
 
+
 def mergeSegments(segments: List[Segment]) -> List[Segment]:
-    """
-    Gộp các khoảng thời gian (segment) chạy liên tục của cùng một tiến trình 
-    thuộc một hàng đợi nhất định lại thành một đoạn nối tiếp duy nhất cho dễ nhìn.
-    """
+    """Gộp các segment liên tiếp của cùng process/queue lại để dễ đọc hơn."""
     if not segments:
         return []
 
@@ -19,6 +16,7 @@ def mergeSegments(segments: List[Segment]) -> List[Segment]:
         else:
             merged.append(cur)
     return merged
+
 
 def formatCpuDiagram(segments: List[Segment]) -> str:
     segments = mergeSegments(segments)
@@ -34,6 +32,7 @@ def formatCpuDiagram(segments: List[Segment]) -> str:
         lines.append(f"{startEnd:<{col1}}{s.queue_id:<{col2}}{s.pid:<{col3}}")
     return "\n".join(lines)
 
+
 def formatProcessStats(processes: List[Process]) -> str:
     title = "==================== PROCESS STATISTICS ===================="
     colP, colA, colB, colC, colT, colW = 10, 10, 10, 14, 14, 10
@@ -48,24 +47,21 @@ def formatProcessStats(processes: List[Process]) -> str:
     sep = "-" * (colP + colA + colB + colC + colT + colW)
 
     def pidKey(p: Process):
-        # Trích xuất ID số cho tiến trình P1, P2, v.v để sắp thứ tự trực quan giống y hệt mẫu (1, 2, ... 10)
+        # Trích số cuối của pid (P1, P2, ...) để sắp theo thứ tự tự nhiên
         try:
             return int(p.pid[1:])
-        except:
+        except (ValueError, IndexError):
             return p.pid
 
     ps = sorted(processes, key=pidKey)
 
     lines = [title, "", header, sep]
-
     turnaroundList = []
     waitingList = []
 
     for p in ps:
         if p.completion is None:
-            completion = -1
-            turnaround = -1
-            waiting = -1
+            completion = turnaround = waiting = -1
         else:
             completion = p.completion
             turnaround = completion - p.arrival
@@ -91,6 +87,7 @@ def formatProcessStats(processes: List[Process]) -> str:
         lines.append(f"Average Waiting Time    : {avgW:.1f}")
 
     return "\n".join(lines)
+
 
 def buildReport(segments: List[Segment], processes: List[Process]) -> str:
     return formatCpuDiagram(segments) + "\n\n" + formatProcessStats(processes) + "\n"

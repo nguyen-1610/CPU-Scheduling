@@ -1,0 +1,10 @@
+# Test 06: Chuỗi preempt liên tục trong SRTN
+# Mỗi process mới đến đều có burst nhỏ hơn remaining của process đang chạy
+# P1(burst=10) bị P2 cướp, P2 bị P3 cướp, P3 bị P4 cướp, rồi chạy ngược lại
+# Expected: P1[0-1], P2[1-2], P3[2-3], P4[3-5], P3[5-7], P2[7-9]... P1 cuối cùng
+1
+Q1 50 SRTN
+P1 0 10 Q1
+P2 1 8 Q1
+P3 2 6 Q1
+P4 3 4 Q1

@@ -1,0 +1,5 @@
+# Test 07: Chỉ 1 tiến trình – trường hợp tối giản
+# Expected: P1 chạy [0-7], completion=7, turnaround=7, waiting=0
+1
+Q1 10 SJF
+P1 0 7 Q1

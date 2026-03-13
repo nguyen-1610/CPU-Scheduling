@@ -1,13 +1,13 @@
-
 from __future__ import annotations
 
 from typing import List, Tuple
 from src.model.entities import QueueConfig, Process
 
+
 def parse_input(file_path: str) -> Tuple[List[QueueConfig], List[Process]]:
-    # 1) Đọc file theo từng dòng, lọc bỏ hoàn toàn các dòng rỗng
     with open(file_path, "r", encoding="utf-8") as f:
-        lines = [ln.strip() for ln in f if ln.strip()]
+        # Bỏ dòng rỗng và comment (#)
+        lines = [ln.strip() for ln in f if ln.strip() and not ln.strip().startswith("#")]
 
     if not lines:
         raise ValueError("Input file is empty!")
@@ -34,6 +34,9 @@ def parse_input(file_path: str) -> Tuple[List[QueueConfig], List[Process]]:
         qid, ts_str, policy = parts
         ts = int(ts_str)
 
+        if ts <= 0:
+            raise ValueError(f"Queue config line {i+1}: time_slice must be > 0 (got {ts}).")
+
         if policy not in ("SJF", "SRTN"):
             raise ValueError(f"Invalid policy '{policy}' in line {i+1}. Must be SJF or SRTN.")
 
@@ -53,13 +56,23 @@ def parse_input(file_path: str) -> Tuple[List[QueueConfig], List[Process]]:
         arrival = int(arr_str)
         burst = int(burst_str)
 
+        if arrival < 0:
+            raise ValueError(f"Process {pid} (line {i+1}): arrival time must be >= 0 (got {arrival}).")
+
+        if burst <= 0:
+            raise ValueError(f"Process {pid} (line {i+1}): burst time must be > 0 (got {burst}).")
+
         if qid not in queue_ids:
             raise ValueError(f"Process {pid} references unknown queue '{qid}' (line {i+1}).")
 
         processes.append(Process(pid=pid, arrival=arrival, burst=burst, queue_id=qid, seq=seq))
         seq += 1
 
-    # 5) Sắp xếp ổn định theo thời gian đến (ưu tiên arrival, cùng arrival thì giữ thứ tự seq)
+    if not processes:
+        import warnings
+        warnings.warn("Input file has queue configurations but no processes defined.", UserWarning)
+
+    # Sắp xếp ổn định theo arrival; cùng arrival giữ thứ tự seq
     processes.sort(key=lambda p: (p.arrival, p.seq))
 
     return queues, processes

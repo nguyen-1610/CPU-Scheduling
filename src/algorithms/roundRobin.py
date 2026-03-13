@@ -1,12 +1,9 @@
-
 from __future__ import annotations
 from typing import Sequence, Any
 
+
 def pickNextQueue(queuePtr: int, ready: Sequence[Sequence[Any]]) -> int:
-    """
-    queuePtr: con trỏ hàng đợi hiện tại
-    ready: danh sách các hàng đợi
-    """
+    """Tìm hàng đợi tiếp theo (tính từ queuePtr) có ít nhất 1 process."""
     n = len(ready)
     if n == 0:
         raise ValueError("No queues configured")

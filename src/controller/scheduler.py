@@ -1,4 +1,3 @@
-# src/controller/scheduler.py
 from __future__ import annotations
 
 from typing import List, Tuple, Optional
@@ -14,11 +13,7 @@ def admit_new_processes(
     readyLists: List[List[Process]],
     queueIndex: dict[str, int],
 ) -> None:
-    """
-    Chuyển tất cả các tiến trình có thời gian đến (arrival) <= t từ danh sách chưa đến (notArrived)
-    vào danh sách sẵn sàng (ready list) của hàng đợi tương ứng.
-    Giả định: danh sách notArrived đã được sắp xếp theo thời gian đến và thứ tự xuất hiện (seq).
-    """
+    """Chuyển tất cả process có arrival <= t vào ready list tương ứng."""
     while notArrived and notArrived[0].arrival <= t:
         p = notArrived.pop(0)
         qi = queueIndex[p.queue_id]
@@ -30,10 +25,7 @@ def is_system_idle(readyLists: List[List[Process]]) -> bool:
 
 
 def peek_next_arrival_time(notArrived: List[Process], queueId: str) -> Optional[int]:
-    """
-    Tìm thời gian đến tiếp theo trong nhóm các tiến trình chưa đến (notArrived) thuộc hàng đợi queueId.
-    Trả về None nếu không còn tiến trình nào trong tương lai cho hàng đợi đó.
-    """
+    """Thời điểm process tiếp theo đến cho hàng đợi queueId; None nếu không còn."""
     for p in notArrived:
         if p.queue_id == queueId:
             return p.arrival
@@ -59,7 +51,7 @@ def run_scheduling(
     queuePtr = 0
     segments: List[Segment] = []
 
-    notArrived = list(processes)  # đã được sắp xếp từ bước đọc file (parser)
+    notArrived = list(processes)  # đã được sắp xếp theo arrival từ parser
     readyLists: List[List[Process]] = [[] for _ in queues]
 
     total = len(processes)
@@ -70,9 +62,10 @@ def run_scheduling(
 
         # CPU nhàn rỗi (idle) -> tua nhanh thời gian (jump time) tới tiến trình đến tiếp theo
         if is_system_idle(readyLists):
-            if not notArrived: # không còn tiến trình nào đến
+            if not notArrived:
                 break
-            t = notArrived[0].arrival # tua nhanh thời gian tới tiến trình đến tiếp theo
+            # Không có process nào sẵn sàng → nhảy thẳng tới arrival tiếp theo
+            t = notArrived[0].arrival
             continue
 
         qIdx = pickNextQueue(queuePtr, readyLists)
@@ -82,17 +75,19 @@ def run_scheduling(
         policyName = qConf.policy
         policyRunner = get_policy_runner(policyName)
 
-        # Chạy các tiến trình trong hàng đợi hiện tại, trong phạm vi ngân sách thời gian cho phép
         while budget > 0 and len(readyLists[qIdx]) > 0:
             # Tính toán xem bao giờ thì có tiến trình mới gia nhập CÙNG KHỐI HÀNG ĐỢI NÀY,
             # dùng cho việc đánh giá ngắt (preempt) (nếu chiến lược là SRTN thì cần quan tâm).
             nextArrivalTime = peek_next_arrival_time(notArrived, qId)
 
-            # Đảm bảo invariants cho SRTN: nếu có arrival mới đúng tại t thì phải push trước
+            # SRTN cần đảm bảo process mới cùng queue được admit trước khi chọn lịch.
+            # Guard: nếu admit không giảm notArrived (process đến thuộc queue khác), không continue.
             if policyName == "SRTN":
                 if nextArrivalTime is not None and nextArrivalTime == t:
+                    prev_len = len(notArrived)
                     admit_new_processes(t, notArrived, readyLists, queueIndex)
-                    continue
+                    if len(notArrived) < prev_len:
+                        continue
 
             t, budget = policyRunner(
                 qId,
@@ -103,10 +98,7 @@ def run_scheduling(
                 nextArrivalTime,
             )
 
-            # Sau khi thời gian tăng lên, có thể sẽ có những tiến trình mới vừa đến, ta cần đưa chúng vào lưới chờ
             admit_new_processes(t, notArrived, readyLists, queueIndex)
-
-            # Cập nhật số lượng tiến trình đã hoàn thành thành công (cách này chậm mà chắc)
             finishedCount = sum(1 for p in processes if p.completion is not None)
 
         queuePtr = (qIdx + 1) % len(queues)

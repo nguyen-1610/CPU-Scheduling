@@ -1,0 +1,7 @@
+# Test 05: CPU rỗng giữa chừng – có khoảng trống time (idle gap)
+# P1 hoàn thành t=5, P2 đến t=10 → CPU idle từ t=5 đến t=10
+# Kiểm tra: scheduler phải jump time đến t=10 thay vì vòng lặp vô nghĩa
+1
+Q1 20 SJF
+P1 0 5 Q1
+P2 10 4 Q1

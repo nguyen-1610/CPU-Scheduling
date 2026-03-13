@@ -1,0 +1,7 @@
+# Test 01: SRTN cơ bản – 1 hàng đợi, preempt xảy ra rõ ràng
+# P1 đến trước với burst=8, P2 đến t=2 với burst=3 → SRTN phải ngắt P1 để chạy P2
+# Expected: P1 chạy [0-2], P2 chạy [2-5], P1 tiếp [5-11]
+1
+Q1 20 SRTN
+P1 0 8 Q1
+P2 2 3 Q1

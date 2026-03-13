@@ -1,0 +1,11 @@
+# Test 10: Tie-break phức tạp – nhiều process cùng burst, khác arrival
+# SRTN: khi tie (remaining bằng nhau), ưu tiên arrival nhỏ hơn, rồi seq nhỏ hơn
+# P1(arr=0,burst=5), P2(arr=0,burst=5), P3(arr=1,burst=5), P4(arr=1,burst=4)
+# Khi P4 đến t=1, remaining P1=4, P4=4 → tie remaining → P1 thắng (arrival=0 < 1)
+# Nhưng khi P1 xong t=5, P2(rem=5), P3(rem=4), P4(rem=?) → P4 thắng
+1
+Q1 50 SRTN
+P1 0 5 Q1
+P2 0 5 Q1
+P3 1 5 Q1
+P4 1 4 Q1

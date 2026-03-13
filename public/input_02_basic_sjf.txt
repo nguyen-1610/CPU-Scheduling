@@ -1,0 +1,9 @@
+# Test 02: SJF cơ bản – 1 hàng đợi, non-preemptive (trong 1 time slice)
+# P1 đến t=0 (burst=8), P2 đến t=0 (burst=3), P3 đến t=0 (burst=5)
+# SJF chọn: burst ngắn nhất trước → P2(3) → P3(5) → P1(8)
+# Expected order: P2, P3, P1
+1
+Q1 50 SJF
+P1 0 8 Q1
+P2 0 3 Q1
+P3 0 5 Q1
