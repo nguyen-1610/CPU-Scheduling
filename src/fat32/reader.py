@@ -1,30 +1,43 @@
 r"""
-reader.py – Mở raw device FAT32 (Windows) và đọc sector theo LBA.
+reader.py – Mở raw device / disk image FAT32 và đọc sector theo LBA.
 
-Cách dùng:
-    reader = DiskReader("E")        # Mở \\.\E:
-    data   = reader.read_sector(0)  # Đọc sector 0 (Boot Sector)
-    reader.close()
+Hỗ trợ:
+    - Windows:  DiskReader("E")                  → mở \\.\E:
+    - macOS:    DiskReader("/dev/rdisk2s1")       → mở raw device
+    - File img: DiskReader("/path/to/image.img")  → mở disk image
 
-Lưu ý: cần quyền Administrator trên Windows.
+Nếu nguồn có MBR partition table, tự tìm phân vùng FAT32 và offset.
 """
 
 from __future__ import annotations
 
+import struct
+
+
+# Các type code FAT32 trong MBR partition table
+_FAT32_TYPES = {0x0B, 0x0C}
+
 
 class DiskReader:
-    """Đọc sector-level từ một ổ đĩa FAT32 qua đường dẫn raw device."""
+    """Đọc sector-level từ một ổ đĩa FAT32 qua đường dẫn raw device hoặc file image."""
 
     def __init__(self, drive_letter: str) -> None:
         """
         Parameters
         ----------
         drive_letter : str
-            Ký tự ổ đĩa (ví dụ ``"E"``).  Sẽ mở ``\\\\.\\E:``.
+            - Windows: ký tự ổ đĩa (``"E"``)
+            - macOS/Linux: đường dẫn device (``"/dev/rdisk2s1"``) hoặc file image
         """
-        drive_letter = drive_letter.strip().rstrip(":\\")
-        self._path = rf"\\.\{drive_letter}:"
+        import sys
+        val = drive_letter.strip()
+        if sys.platform == "win32":
+            val = val.rstrip(":\\")
+            self._path = rf"\\.\{val}:"
+        else:
+            self._path = val if val.startswith("/") else f"/dev/{val}"
         self._bytes_per_sector = 512          # mặc định, cập nhật sau parse BPB
+        self._partition_offset = 0            # offset (tính theo sector) tới phân vùng FAT32
         try:
             self._handle = open(self._path, "rb")
         except PermissionError:
@@ -38,7 +51,43 @@ class DiskReader:
                 "Kiểm tra lại ký tự ổ đĩa."
             )
 
+        # Tự động phát hiện MBR → tìm phân vùng FAT32
+        self._detect_partition()
+
     # ------------------------------------------------------------------
+    def _detect_partition(self) -> None:
+        """Đọc sector 0, nếu là MBR thì tìm phân vùng FAT32 và lưu offset."""
+        self._handle.seek(0)
+        sector0 = self._handle.read(512)
+        if len(sector0) < 512:
+            return
+
+        sig = struct.unpack_from("<H", sector0, 510)[0]
+        if sig != 0xAA55:
+            return
+
+        # Kiểm tra xem sector 0 có phải Boot Sector FAT32 hợp lệ không
+        bps = struct.unpack_from("<H", sector0, 11)[0]
+        if bps in (512, 1024, 2048, 4096):
+            # Sector 0 đã là VBR (FAT32 boot sector) → không cần offset
+            return
+
+        # Sector 0 là MBR → duyệt 4 partition entry (offset 446..510)
+        for i in range(4):
+            base = 446 + i * 16
+            entry = sector0[base:base + 16]
+            ptype = entry[4]
+            if ptype in _FAT32_TYPES:
+                start_lba = struct.unpack_from("<I", entry, 8)[0]
+                self._partition_offset = start_lba
+                return
+
+    # ------------------------------------------------------------------
+    @property
+    def partition_offset(self) -> int:
+        """Offset (sector) tới phân vùng FAT32 (0 nếu không có MBR)."""
+        return self._partition_offset
+
     @property
     def bytes_per_sector(self) -> int:
         return self._bytes_per_sector
@@ -49,13 +98,15 @@ class DiskReader:
 
     # ------------------------------------------------------------------
     def read_sector(self, lba: int) -> bytes:
-        """Đọc 1 sector tại địa chỉ LBA."""
-        self._handle.seek(lba * self._bytes_per_sector)
+        """Đọc 1 sector tại địa chỉ LBA (đã cộng partition offset)."""
+        actual_lba = lba + self._partition_offset
+        self._handle.seek(actual_lba * self._bytes_per_sector)
         return self._handle.read(self._bytes_per_sector)
 
     def read_sectors(self, lba: int, count: int) -> bytes:
-        """Đọc *count* sectors liên tiếp bắt đầu từ *lba*."""
-        self._handle.seek(lba * self._bytes_per_sector)
+        """Đọc *count* sectors liên tiếp bắt đầu từ *lba* (đã cộng partition offset)."""
+        actual_lba = lba + self._partition_offset
+        self._handle.seek(actual_lba * self._bytes_per_sector)
         return self._handle.read(self._bytes_per_sector * count)
 
     # ------------------------------------------------------------------

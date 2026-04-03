@@ -8,12 +8,12 @@ from __future__ import annotations
 
 from typing import List, TYPE_CHECKING
 
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QListWidget, QListWidgetItem, QPushButton, QLabel, QMessageBox,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 from src.fat32.directory import FileEntry
 
@@ -103,7 +103,7 @@ class FilesTab(QWidget):
         # Mở DetailDialog
         from src.gui.detail_dialog import DetailDialog
         dlg = DetailDialog(fe, text, parent=self)
-        dlg.exec_()
+        dlg.exec()
 
     # ------------------------------------------------------------------
     def _on_refresh(self) -> None:

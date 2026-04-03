@@ -47,7 +47,7 @@ def parse_boot_sector(data: bytes) -> Dict[str, Any]:
     # Kiểm tra magic signature
     sig = struct.unpack_from("<H", data, 510)[0]
     if sig != 0xAA55:
-        raise ValueError(
+        raise ValueError( # Báo lỗi nếu không phải FAT32
             f"Boot sector signature không hợp lệ: 0x{sig:04X} (cần 0xAA55). "
             "Ổ đĩa có thể không phải FAT32."
         )

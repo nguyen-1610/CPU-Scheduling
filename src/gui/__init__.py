@@ -1,1 +1,1 @@
-# src/gui – PyQt5 GUI package
+# src/gui – PySide6 GUI package

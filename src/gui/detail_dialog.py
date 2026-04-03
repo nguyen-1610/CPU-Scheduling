@@ -11,13 +11,13 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from PyQt5.QtWidgets import (
+from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGroupBox, QFormLayout,
     QLabel, QTableWidget, QTableWidgetItem, QScrollArea, QMessageBox,
     QWidget, QSizePolicy,
 )
-from PyQt5.QtCore import Qt, QRectF
-from PyQt5.QtGui import QFont, QPainter, QColor, QPen
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QFont, QPainter, QColor, QPen
 
 from src.fat32.directory import FileEntry, parse_fat_date, parse_fat_time
 from src.model.entities import QueueConfig, Process, Segment

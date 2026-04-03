@@ -6,9 +6,9 @@ from __future__ import annotations
 
 from typing import Dict, Any
 
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QLabel
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 
 # Thứ tự hiển thị và nhãn tiếng Việt
