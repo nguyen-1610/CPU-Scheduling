@@ -95,14 +95,13 @@ class FilesTab(QWidget):
             )
             # Cắt theo file size thật (loại bỏ padding cluster)
             raw_content = raw_content[:fe.size]
-            text = raw_content.decode("utf-8", errors="replace")
         except Exception as e:
             QMessageBox.critical(self, "Lỗi đọc file", str(e))
             return
 
         # Mở DetailDialog
         from src.gui.detail_dialog import DetailDialog
-        dlg = DetailDialog(fe, text, parent=self)
+        dlg = DetailDialog(fe, raw_content, parent=self)
         dlg.exec()
 
     # ------------------------------------------------------------------

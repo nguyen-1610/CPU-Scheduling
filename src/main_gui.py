@@ -18,7 +18,7 @@ def main() -> None:
     app.setStyle("Fusion")
 
     win = MainWindow()
-    win.show()
+    win.showMaximized()
     sys.exit(app.exec())
 
 
