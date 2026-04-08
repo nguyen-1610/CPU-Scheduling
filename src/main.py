@@ -1,7 +1,7 @@
 import sys
 import os
 
-from src.io.parser import parse_input
+from src.io.parser import parse_input_bytes
 from src.controller.scheduler import run_scheduling
 from src.io.layoutOutput import buildReport
 
@@ -27,7 +27,8 @@ def main() -> None:
 
     # 2. Parse input
     try:
-        queues, processes = parse_input(input_path)
+        with open(input_path, "rb") as f:
+            queues, processes = parse_input_bytes(f.read())
     except ValueError as e:
         print(f"[ERROR] Invalid input: {e}", file=sys.stderr)
         sys.exit(1)

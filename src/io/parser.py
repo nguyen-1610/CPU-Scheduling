@@ -94,8 +94,3 @@ def parse_input_bytes(raw_bytes: bytes, encoding: str = "utf-8-sig") -> Tuple[Li
         raise ValueError(f"Unable to decode input bytes with {encoding}: {exc}") from exc
 
     return parse_input_text(text)
-
-
-def parse_input(file_path: str) -> Tuple[List[QueueConfig], List[Process]]:
-    with open(file_path, "rb") as f:
-        return parse_input_bytes(f.read())
