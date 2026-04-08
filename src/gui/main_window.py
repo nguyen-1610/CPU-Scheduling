@@ -13,7 +13,8 @@ Bố cục:
 from __future__ import annotations
 
 import sys
-import subprocess
+
+from src.fat32.macos_utils import detect_fat32_devices, unmount_disk_mac
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -74,16 +75,14 @@ class MainWindow(QMainWindow):
         if _IS_MAC:
             # macOS: Dropdown chọn USB + nút Detect
             lbl = QLabel("Ổ USB FAT32:")
-            lbl.setFont(QFont("Segoe UI", 10))
+            lbl.setFont(QFont()) # Default font
 
             self._device_combo = QComboBox()
             self._device_combo.setMinimumWidth(300)
-            self._device_combo.setFont(QFont("Segoe UI", 10))
             self._device_combo.setEditable(True)
             self._device_combo.setPlaceholderText("Nhấn Detect USB hoặc nhập path...")
 
             self._btn_detect = QPushButton("🔍 Detect USB")
-            self._btn_detect.setFont(QFont("Segoe UI", 10))
             self._btn_detect.setMinimumWidth(120)
             self._btn_detect.clicked.connect(self._on_detect_usb)
 
@@ -96,18 +95,18 @@ class MainWindow(QMainWindow):
         else:
             # Windows: Nhập ký tự ổ đĩa
             lbl = QLabel("Drive letter:")
-            lbl.setFont(QFont("Segoe UI", 10))
             self._drive_input = QLineEdit()
             self._drive_input.setPlaceholderText("E")
             self._drive_input.setMaximumWidth(60)
-            self._drive_input.setFont(QFont("Segoe UI", 10))
             self._drive_input.returnPressed.connect(self._on_connect)
 
             drive_bar.addWidget(lbl)
             drive_bar.addWidget(self._drive_input)
 
         self._btn_connect = QPushButton("Connect")
-        self._btn_connect.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        f = self._btn_connect.font()
+        f.setBold(True)
+        self._btn_connect.setFont(f)
         self._btn_connect.setMinimumWidth(100)
         self._btn_connect.clicked.connect(self._on_connect)
 
@@ -129,98 +128,18 @@ class MainWindow(QMainWindow):
     #  macOS: Auto-detect FAT32 USB devices
     # ==================================================================
     def _on_detect_usb(self) -> None:
-        """Dùng diskutil list để tìm tất cả phân vùng FAT32 external."""
+        """Sử dụng macos_utils để tìm các ổ FAT32."""
         self._device_combo.clear()
-        try:
-            result = subprocess.run(
-                ["diskutil", "list", "-plist", "external", "physical"],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode != 0:
-                # Fallback: parse text output
-                self._detect_usb_text()
-                return
+        devices = detect_fat32_devices()
+        
+        for drive_path, label in devices:
+            self._device_combo.addItem(label, drive_path)
 
-            import plistlib
-            plist = plistlib.loads(result.stdout.encode())
-            disks = plist.get("AllDisksAndPartitions", [])
+        if not devices:
+            self.statusBar().showMessage("Không tìm thấy ổ USB FAT32 nào. Hãy cắm USB rồi thử lại.")
+        else:
+            self.statusBar().showMessage(f"Tìm thấy {len(devices)} ổ USB FAT32. Chọn ổ rồi nhấn Connect.")
 
-            found = 0
-            for disk in disks:
-                disk_id = disk.get("DeviceIdentifier", "")
-                partitions = disk.get("Partitions", [])
-                for part in partitions:
-                    content = part.get("Content", "")
-                    if "FAT" in content.upper():
-                        part_id = part.get("DeviceIdentifier", "")
-                        name = part.get("VolumeName", "") or part.get("MountPoint", "")
-                        size = part.get("Size", 0)
-                        size_gb = size / (1024 ** 3) if size else 0
-                        label = f"/dev/{disk_id} — {name} ({size_gb:.1f} GB) [{part_id}]"
-                        self._device_combo.addItem(label, f"/dev/{disk_id}")
-                        found += 1
-
-            if found == 0:
-                self.statusBar().showMessage("Không tìm thấy ổ USB FAT32 nào. Hãy cắm USB rồi thử lại.")
-            else:
-                self.statusBar().showMessage(f"Tìm thấy {found} ổ USB FAT32. Chọn ổ rồi nhấn Connect.")
-
-        except Exception as e:
-            self._detect_usb_text()
-
-    def _detect_usb_text(self) -> None:
-        """Fallback: parse text output của diskutil list."""
-        try:
-            result = subprocess.run(
-                ["diskutil", "list", "external"],
-                capture_output=True, text=True, timeout=5,
-            )
-            lines = result.stdout.splitlines()
-            current_disk = ""
-            found = 0
-
-            for line in lines:
-                if line.startswith("/dev/"):
-                    # e.g. "/dev/disk12 (external, physical):"
-                    current_disk = line.split()[0]
-                elif "DOS_FAT_32" in line or "Microsoft Basic Data" in line:
-                    parts = line.split()
-                    # Tìm tên volume và identifier
-                    identifier = parts[-1] if parts else ""
-                    # Tìm tên volume (nằm giữa TYPE và SIZE)
-                    name = ""
-                    for i, p in enumerate(parts):
-                        if p in ("DOS_FAT_32", "Microsoft"):
-                            name = " ".join(parts[i+1:-2])  # name nằm giữa type và size
-                            break
-                    label = f"{current_disk} — {name} [{identifier}]"
-                    self._device_combo.addItem(label, current_disk)
-                    found += 1
-
-            if found == 0:
-                self.statusBar().showMessage("Không tìm thấy ổ USB FAT32 nào.")
-            else:
-                self.statusBar().showMessage(f"Tìm thấy {found} ổ USB FAT32.")
-
-        except Exception:
-            self.statusBar().showMessage("Lỗi khi detect USB. Hãy nhập path thủ công.")
-
-    # ==================================================================
-    #  macOS: Unmount trước khi đọc raw device
-    # ==================================================================
-    @staticmethod
-    def _unmount_disk_mac(disk_path: str) -> bool:
-        """Unmount toàn bộ ổ đĩa để có thể truy cập raw device."""
-        try:
-            # Lấy disk identifier (vd: /dev/disk12 → disk12)
-            disk_id = disk_path.replace("/dev/", "")
-            result = subprocess.run(
-                ["diskutil", "unmountDisk", disk_id],
-                capture_output=True, text=True, timeout=10,
-            )
-            return result.returncode == 0
-        except Exception:
-            return False
 
     # ==================================================================
     #  Connect handler
@@ -251,13 +170,11 @@ class MainWindow(QMainWindow):
             # macOS: Tự động unmount trước khi đọc raw device
             if _IS_MAC and drive.startswith("/dev/"):
                 self.statusBar().showMessage(f"Đang unmount {drive}...")
-                if not self._unmount_disk_mac(drive):
+                if not unmount_disk_mac(drive):
                     QMessageBox.warning(
                         self, "Unmount thất bại",
                         f"Không thể unmount {drive}.\n"
-                        "Hãy thử đóng các ứng dụng đang dùng USB rồi thử lại,\n"
-                        "hoặc chạy trong terminal:\n"
-                        f"  sudo diskutil unmountDisk force {drive}"
+                        "Hãy thử đóng các ứng dụng đang dùng USB rồi thử lại."
                     )
                     return
 
@@ -288,6 +205,11 @@ class MainWindow(QMainWindow):
                 data_start_lba=self._boot_info["DataStart"],
                 sec_per_clus=self._boot_info["SecPerClus"],
             )
+
+            # 3.5) Tính toán số sector thực tế của RDET
+            # FAT32: Root Dir là 1 cluster chain, ta đếm số cluster rồi nhân spc
+            root_chain = self._fat.get_chain(self._boot_info["RootClus"])
+            self._boot_info["RDETSectors"] = len(root_chain) * self._boot_info["SecPerClus"]
 
             # 4) Cập nhật tabs
             self._boot_tab.display(self._boot_info)

@@ -32,7 +32,10 @@ class BootTab(QWidget):
         layout.setContentsMargins(12, 12, 12, 12)
 
         title = QLabel("Thông tin Boot Sector (BPB)")
-        title.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        f = title.font()
+        f.setPointSize(12)
+        f.setBold(True)
+        title.setFont(f)
         layout.addWidget(title)
 
         self._table = QTableWidget(len(_DISPLAY_FIELDS), 2)
@@ -42,7 +45,6 @@ class BootTab(QWidget):
         self._table.verticalHeader().setVisible(False)
         self._table.setEditTriggers(QTableWidget.NoEditTriggers)
         self._table.setAlternatingRowColors(True)
-        self._table.setFont(QFont("Consolas", 10))
         layout.addWidget(self._table)
 
         # Placeholder rows

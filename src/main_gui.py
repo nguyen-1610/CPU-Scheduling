@@ -7,18 +7,21 @@ Chạy:
 """
 
 import sys
+import signal
 from PySide6.QtWidgets import QApplication
 from src.gui.main_window import MainWindow
 
 
 def main() -> None:
-    app = QApplication(sys.argv)
+    # Cho phép Ctrl+C đóng chương trình (SIGINT)
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # Style nhẹ cho toàn app
+    app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
     win = MainWindow()
     win.showMaximized()
+
     sys.exit(app.exec())
 
 

@@ -33,13 +33,14 @@ class FilesTab(QWidget):
         layout.setContentsMargins(12, 12, 12, 12)
 
         title = QLabel("Danh sách file .txt trên ổ FAT32")
-        title.setFont(QFont("Segoe UI", 12, QFont.Bold))
+        f = title.font()
+        f.setPointSize(12)
+        f.setBold(True)
+        title.setFont(f)
         layout.addWidget(title)
 
         self._list = QListWidget()
-        self._list.setFont(QFont("Consolas", 10))
-        self._list.setAlternatingRowColors(True)
-        self._list.doubleClicked.connect(self._on_view_details)
+        # Để hệ thống tự chọn font mono tốt nhất
         layout.addWidget(self._list)
 
         # ── Buttons ──
@@ -47,13 +48,14 @@ class FilesTab(QWidget):
         btn_bar.addStretch()
 
         self._btn_view = QPushButton("View Details")
-        self._btn_view.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        f2 = self._btn_view.font()
+        f2.setBold(True)
+        self._btn_view.setFont(f2)
         self._btn_view.setMinimumWidth(120)
         self._btn_view.clicked.connect(self._on_view_details)
         btn_bar.addWidget(self._btn_view)
 
         self._btn_refresh = QPushButton("Refresh")
-        self._btn_refresh.setFont(QFont("Segoe UI", 10))
         self._btn_refresh.clicked.connect(self._on_refresh)
         btn_bar.addWidget(self._btn_refresh)
 

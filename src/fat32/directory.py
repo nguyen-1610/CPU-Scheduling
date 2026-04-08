@@ -171,6 +171,11 @@ def _walk_directory(
                 continue
             if display_name in (".", ".."):
                 continue
+
+            # Bỏ qua các thư mục hệ thống của macOS
+            if display_name in (".Trashes", ".Spotlight-V100", ".fseventsd"):
+                continue
+
             # Đệ quy vào sub-directory
             sub_path = current_path + display_name + "/"
             if first_cluster >= 2:
@@ -185,7 +190,8 @@ def _walk_directory(
         crt_date  = struct.unpack_from("<H", entry, 16)[0]
 
         # Lọc chỉ lấy .txt (không phân biệt hoa thường)
-        if display_name.upper().endswith(".TXT"):
+        # Bỏ qua các file metadata của macOS (AppleDouble starting with '._')
+        if display_name.upper().endswith(".TXT") and not display_name.startswith("._"):
             file_path = current_path + display_name
             results.append(FileEntry(
                 name=display_name,

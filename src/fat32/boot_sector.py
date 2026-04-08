@@ -66,7 +66,6 @@ def parse_boot_sector(data: bytes) -> Dict[str, Any]:
 
     info["FATStart"]    = rsvd                       # LBA đầu vùng FAT
     info["DataStart"]   = rsvd + nfat * fsz          # LBA đầu vùng Data
-    info["RDETSectors"] = spc                        # Sectors cho Root Dir (tối thiểu 1 cluster)
 
     return info
 

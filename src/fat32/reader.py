@@ -41,9 +41,11 @@ class DiskReader:
         try:
             self._handle = open(self._path, "rb")
         except PermissionError:
+            import sys
+            term = "Administrator" if sys.platform == "win32" else "sudo (Root)"
             raise PermissionError(
-                f"Không thể mở {self._path}. "
-                "Hãy chạy ứng dụng với quyền Administrator."
+                f"Không thể mở {self._path}.\n"
+                f"Hãy chạy ứng dụng với quyền {term}."
             )
         except FileNotFoundError:
             raise FileNotFoundError(

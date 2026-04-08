@@ -35,7 +35,9 @@ class DetailDialog(QDialog):
         layout.setSpacing(10)
 
         info_box = QGroupBox("Thong tin file")
-        info_box.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        f = info_box.font()
+        f.setBold(True)
+        info_box.setFont(f)
         info_form = QFormLayout(info_box)
         info_form.addRow("Ten file:", QLabel(entry.name))
         info_form.addRow("Duong dan:", QLabel(entry.path))
@@ -50,7 +52,9 @@ class DetailDialog(QDialog):
             return
 
         proc_box = QGroupBox("Danh sach Process")
-        proc_box.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        f2 = proc_box.font()
+        f2.setBold(True)
+        proc_box.setFont(f2)
         proc_layout = QVBoxLayout(proc_box)
 
         queue_map = {q.queue_id: q for q in queues}
@@ -63,7 +67,6 @@ class DetailDialog(QDialog):
             "TimeSlice",
             "Algorithm",
         ])
-        proc_table.setFont(QFont("Consolas", 9))
         proc_table.setEditTriggers(QTableWidget.NoEditTriggers)
         proc_table.setAlternatingRowColors(True)
         proc_table.horizontalHeader().setStretchLastSection(True)
@@ -103,12 +106,13 @@ class DetailDialog(QDialog):
             return
 
         report_box = QGroupBox("Scheduling Output")
-        report_box.setFont(QFont("Segoe UI", 10, QFont.Bold))
+        f3 = report_box.font()
+        f3.setBold(True)
+        report_box.setFont(f3)
         report_layout = QVBoxLayout(report_box)
 
         report_view = QPlainTextEdit()
         report_view.setReadOnly(True)
-        report_view.setFont(QFont("Consolas", 9))
         report_view.setPlainText(buildReport(segments, result_procs).rstrip())
         report_view.setMinimumHeight(360)
         report_layout.addWidget(report_view)
