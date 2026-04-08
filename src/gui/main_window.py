@@ -18,7 +18,7 @@ from src.fat32.macos_utils import detect_fat32_devices, unmount_disk_mac
 
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QLineEdit, QPushButton, QTabWidget,
+    QLabel, QPushButton, QTabWidget,
     QMessageBox, QStatusBar, QComboBox,
 )
 from PySide6.QtCore import Qt
@@ -34,7 +34,6 @@ from src.gui.files_tab import FilesTab
 
 from typing import Optional, List, Dict, Any
 
-_IS_MAC = sys.platform == "darwin"
 
 
 class MainWindow(QMainWindow):
@@ -54,10 +53,7 @@ class MainWindow(QMainWindow):
 
         # ── UI ──
         self._build_ui()
-        if _IS_MAC:
-            self.statusBar().showMessage("Nhấn Detect USB để tìm ổ FAT32, hoặc nhập path thủ công.")
-        else:
-            self.statusBar().showMessage("Nhập ký tự ổ đĩa FAT32 rồi nhấn Connect.")
+        self.statusBar().showMessage("Nhấn Detect USB để tìm ổ FAT32, hoặc nhập path thủ công.")
 
     # ==================================================================
     #  Build UI
@@ -72,7 +68,7 @@ class MainWindow(QMainWindow):
         # ── Drive bar ──
         drive_bar = QHBoxLayout()
 
-        if _IS_MAC:
+        if True:
             # macOS: Dropdown chọn USB + nút Detect
             lbl = QLabel("Ổ USB FAT32:")
             lbl.setFont(QFont()) # Default font
@@ -145,15 +141,12 @@ class MainWindow(QMainWindow):
     #  Connect handler
     # ==================================================================
     def _on_connect(self) -> None:
-        if _IS_MAC:
-            # Lấy device path từ combo box (userData) hoặc text nhập tay
-            idx = self._device_combo.currentIndex()
-            if idx >= 0 and self._device_combo.itemData(idx):
-                drive = self._device_combo.itemData(idx)
-            else:
-                drive = self._device_combo.currentText().strip()
+        # Lấy device path từ combo box (userData) hoặc text nhập tay
+        idx = self._device_combo.currentIndex()
+        if idx >= 0 and self._device_combo.itemData(idx):
+            drive = self._device_combo.itemData(idx)
         else:
-            drive = self._drive_input.text().strip()
+            drive = self._device_combo.currentText().strip()
 
         if not drive:
             QMessageBox.warning(self, "Lỗi", "Vui lòng chọn hoặc nhập ổ đĩa.")
@@ -168,7 +161,7 @@ class MainWindow(QMainWindow):
 
         try:
             # macOS: Tự động unmount trước khi đọc raw device
-            if _IS_MAC and drive.startswith("/dev/"):
+            if drive.startswith("/dev/"):
                 self.statusBar().showMessage(f"Đang unmount {drive}...")
                 if not unmount_disk_mac(drive):
                     QMessageBox.warning(
@@ -226,14 +219,11 @@ class MainWindow(QMainWindow):
             )
 
         except PermissionError as e:
-            if _IS_MAC:
-                QMessageBox.critical(
-                    self, "Lỗi quyền truy cập",
-                    f"{e}\n\nHãy cấp quyền trong terminal:\n"
-                    f"  sudo chmod 666 {drive}"
-                )
-            else:
-                QMessageBox.critical(self, "Cần quyền Admin", str(e))
+            QMessageBox.critical(
+                self, "Lỗi quyền truy cập",
+                f"{e}\n\nHãy cấp quyền trong terminal:\n"
+                f"  sudo chmod 666 {drive}"
+            )
             self.statusBar().showMessage("Lỗi: không có quyền truy cập.")
         except FileNotFoundError as e:
             QMessageBox.critical(self, "Không tìm thấy ổ đĩa", str(e))

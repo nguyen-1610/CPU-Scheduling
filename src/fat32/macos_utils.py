@@ -33,8 +33,8 @@ def detect_fat32_devices() -> List[Tuple[str, str, str]]:
                         name = part.get("VolumeName", "") or "Untitled"
                         size = part.get("Size", 0)
                         size_gb = size / (1024 ** 3) if size else 0
-                        label = f"/dev/{disk_id} — {name} ({size_gb:.1f} GB) [{part_id}]"
-                        found_devices.append((f"/dev/{disk_id}", label))
+                        label = f"/dev/r{disk_id} — {name} ({size_gb:.1f} GB) [{part_id}]"
+                        found_devices.append((f"/dev/r{disk_id}", label))
             if found_devices:
                 return found_devices
 
@@ -61,8 +61,8 @@ def _detect_usb_text_fallback() -> List[Tuple[str, str]]:
                 parts = line.split()
                 identifier = parts[-1] if parts else ""
                 name = " ".join(parts[i+1:-2]) if "DOS_FAT_32" in line else "Unknown"
-                label = f"{current_disk} — {name} [{identifier}]"
-                devices.append((current_disk, label))
+                label = f"/dev/r{identifier} — {name} [{identifier}]"
+                devices.append((f"/dev/r{identifier}", label))
     except Exception:
         pass
     return devices

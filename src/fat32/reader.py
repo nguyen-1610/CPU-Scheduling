@@ -21,36 +21,35 @@ _FAT32_TYPES = {0x0B, 0x0C}
 class DiskReader:
     """Đọc sector-level từ một ổ đĩa FAT32 qua đường dẫn raw device hoặc file image."""
 
-    def __init__(self, drive_letter: str) -> None:
+    def __init__(self, device_path: str) -> None:
         """
         Parameters
         ----------
-        drive_letter : str
-            - Windows: ký tự ổ đĩa (``"E"``)
-            - macOS/Linux: đường dẫn device (``"/dev/rdisk2s1"``) hoặc file image
+        device_path : str
+            Đường dẫn device (vd: "/dev/rdisk2s1") hoặc file image.
         """
-        import sys
-        val = drive_letter.strip()
-        if sys.platform == "win32":
-            val = val.rstrip(":\\")
-            self._path = rf"\\.\{val}:"
-        else:
-            self._path = val if val.startswith("/") else f"/dev/{val}"
+        self._path = device_path.strip()
+        if not self._path.startswith("/") and not " — " in self._path:
+            # Nếu chỉ nhập ID như "disk4s1", tự động thêm /dev/rdisk
+            self._path = f"/dev/r{self._path}"
+        elif "/dev/disk" in self._path and not "/dev/rdisk" in self._path:
+            # Chuyển /dev/disk... sang /dev/rdisk... cho macOS
+            self._path = self._path.replace("/dev/disk", "/dev/rdisk")
+        
         self._bytes_per_sector = 512          # mặc định, cập nhật sau parse BPB
         self._partition_offset = 0            # offset (tính theo sector) tới phân vùng FAT32
+        
         try:
             self._handle = open(self._path, "rb")
         except PermissionError:
-            import sys
-            term = "Administrator" if sys.platform == "win32" else "sudo (Root)"
             raise PermissionError(
                 f"Không thể mở {self._path}.\n"
-                f"Hãy chạy ứng dụng với quyền {term}."
+                "Hãy chạy ứng dụng với quyền sudo (Root)."
             )
         except FileNotFoundError:
             raise FileNotFoundError(
                 f"Không tìm thấy ổ đĩa {self._path}. "
-                "Kiểm tra lại ký tự ổ đĩa."
+                "Kiểm tra lại đường dẫn thiết bị."
             )
 
         # Tự động phát hiện MBR → tìm phân vùng FAT32

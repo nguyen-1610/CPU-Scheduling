@@ -3,7 +3,7 @@ main_gui.py – Entry point cho ứng dụng GUI Lab 02.
 
 Chạy:
     python -m src.main_gui
-    (cần quyền Administrator trên Windows để đọc raw FAT32 device)
+    (Cần quyền sudo để đọc raw FAT32 device trên macOS)
 """
 
 import sys
