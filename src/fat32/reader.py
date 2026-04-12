@@ -1,14 +1,3 @@
-r"""
-reader.py – Mở raw device / disk image FAT32 và đọc sector theo LBA.
-
-Hỗ trợ:
-    - Windows:  DiskReader("E")                  → mở \\.\E:
-    - macOS:    DiskReader("/dev/rdisk2s1")       → mở raw device
-    - File img: DiskReader("/path/to/image.img")  → mở disk image
-
-Nếu nguồn có MBR partition table, tự tìm phân vùng FAT32 và offset.
-"""
-
 from __future__ import annotations
 
 import struct
@@ -19,15 +8,8 @@ _FAT32_TYPES = {0x0B, 0x0C}
 
 
 class DiskReader:
-    """Đọc sector-level từ một ổ đĩa FAT32 qua đường dẫn raw device hoặc file image."""
 
     def __init__(self, device_path: str) -> None:
-        """
-        Parameters
-        ----------
-        device_path : str
-            Đường dẫn device (vd: "/dev/rdisk2s1") hoặc file image.
-        """
         self._path = device_path.strip()
         if not self._path.startswith("/") and not " — " in self._path:
             # Nếu chỉ nhập ID như "disk4s1", tự động thêm /dev/rdisk

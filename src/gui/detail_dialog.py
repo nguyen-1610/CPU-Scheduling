@@ -113,6 +113,12 @@ class DetailDialog(QDialog):
 
         report_view = QPlainTextEdit()
         report_view.setReadOnly(True)
+        # Use a monospaced font to ensure the ASCII table is aligned correctly
+        mono_font = QFont("Courier New")
+        if not mono_font.fixedPitch():
+            mono_font.setStyleHint(QFont.Monospace)
+        report_view.setFont(mono_font)
+        
         report_view.setPlainText(buildReport(segments, result_procs).rstrip())
         report_view.setMinimumHeight(360)
         report_layout.addWidget(report_view)

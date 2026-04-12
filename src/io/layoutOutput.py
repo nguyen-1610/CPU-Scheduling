@@ -21,11 +21,14 @@ def mergeSegments(segments: List[Segment]) -> List[Segment]:
 def formatCpuDiagram(segments: List[Segment]) -> str:
     segments = mergeSegments(segments)
 
-    title = "==================== CPU SCHEDULING DIAGRAM ===================="
-    col1, col2, col3 = 18, 12, 10
+    # Adjust column widths to be more consistent and match the title length
+    col1, col2, col3 = 25, 15, 15
+    total_width = col1 + col2 + col3
+    
+    title = " CPU SCHEDULING DIAGRAM ".center(total_width, "=")
     header = f"{'[Start - End]':<{col1}}{'Queue':<{col2}}{'Process':<{col3}}"
-    sep = "-" * (col1 + col2 + col3)
-
+    sep = "-" * total_width
+    
     lines = [title, "", header, sep]
     for s in segments:
         startEnd = f"[{s.start} - {s.end}]"
@@ -34,8 +37,11 @@ def formatCpuDiagram(segments: List[Segment]) -> str:
 
 
 def formatProcessStats(processes: List[Process]) -> str:
-    title = "==================== PROCESS STATISTICS ===================="
-    colP, colA, colB, colC, colT, colW = 10, 10, 10, 14, 14, 10
+    # Use consistent column widths for a polished look
+    colP, colA, colB, colC, colT, colW = 12, 10, 10, 14, 14, 10
+    total_width = colP + colA + colB + colC + colT + colW
+    
+    title = " PROCESS STATISTICS ".center(total_width, "=")
     header = (
         f"{'Process':<{colP}}"
         f"{'Arrival':<{colA}}"
@@ -44,7 +50,7 @@ def formatProcessStats(processes: List[Process]) -> str:
         f"{'Turnaround':<{colT}}"
         f"{'Waiting':<{colW}}"
     )
-    sep = "-" * (colP + colA + colB + colC + colT + colW)
+    sep = "-" * total_width
 
     def pidKey(p: Process):
         # Trích số cuối của pid (P1, P2, ...) để sắp theo thứ tự tự nhiên

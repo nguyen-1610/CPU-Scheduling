@@ -36,12 +36,7 @@ def run_scheduling(
     queues: List[QueueConfig],
     processes: List[Process],
 ) -> Tuple[List[Segment], List[Process]]:
-    """
-    Thực hiện lập lịch cho toàn bộ hệ thống:
-    - Định vị hàng đợi theo vòng (Round Robin).
-    - Trong mỗi hàng đợi: áp dụng chiến lược SJF hoặc SRTN (dựa vào cấu hình đầu vào).
-    Trả về: danh sách các đoạn thời gian thực thi (segments) và danh sách tiến trình (đã cập nhật thời gian hoàn thành).
-    """
+
     if not queues:
         return [], processes
 

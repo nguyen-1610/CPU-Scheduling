@@ -29,8 +29,6 @@ class FileEntry:
     crt_time: int           # Raw 2-byte giờ tạo
 
 
-# ── Helpers giải mã ngày / giờ FAT ──────────────────────────────────
-
 def parse_fat_date(raw: int) -> str:
     """Giải mã raw 2-byte FAT date → 'DD/MM/YYYY'."""
     if raw == 0:
@@ -51,8 +49,6 @@ def parse_fat_time(raw: int) -> str:
     return f"{hour:02d}:{mins:02d}:{sec:02d}"
 
 
-# ── Parse Short File Name (8.3) ─────────────────────────────────────
-
 def _parse_short_name(entry: bytes) -> str:
     """Trích tên 8.3 từ 32-byte directory entry."""
     name_part = entry[0:8].decode("ascii", errors="replace").rstrip()
@@ -62,19 +58,17 @@ def _parse_short_name(entry: bytes) -> str:
     return name_part
 
 
-# ── Parse LFN entry ─────────────────────────────────────────────────
-
 def _parse_lfn_chars(entry: bytes) -> str:
     """Trích ký tự Unicode từ 1 LFN entry (32 byte)."""
     # LFN chars nằm ở 3 vùng trong entry
     chars = []
-    # Vùng 1: offset 1–10  (5 UCS-2 chars)
+    # Vùng 1: offset 1–10 (5 ký tự, mỗi ký tự 2 byte)
     for i in range(1, 11, 2):
         chars.append(struct.unpack_from("<H", entry, i)[0])
-    # Vùng 2: offset 14–25 (6 UCS-2 chars)
+    # Vùng 2: offset 14–25 (6 ký tự, mỗi ký tự 2 byte)
     for i in range(14, 26, 2):
         chars.append(struct.unpack_from("<H", entry, i)[0])
-    # Vùng 3: offset 28–31 (2 UCS-2 chars)
+    # Vùng 3: offset 28–31 (2 ký tự, mỗi ký tự 2 byte)
     for i in range(28, 32, 2):
         chars.append(struct.unpack_from("<H", entry, i)[0])
 
@@ -87,8 +81,6 @@ def _parse_lfn_chars(entry: bytes) -> str:
     return "".join(result)
 
 
-# ── Duyệt thư mục ───────────────────────────────────────────────────
-
 def list_txt_files(
     reader: DiskReader,
     fat: FATTable,
@@ -96,10 +88,7 @@ def list_txt_files(
     data_start_lba: int,
     sec_per_clus: int,
 ) -> List[FileEntry]:
-    """
-    Duyệt đệ quy toàn bộ cây thư mục FAT32 từ *root_cluster*,
-    trả về danh sách tất cả file ``.txt`` (không phân biệt hoa thường).
-    """
+    
     results: List[FileEntry] = []
     _walk_directory(reader, fat, root_cluster, data_start_lba,
                     sec_per_clus, "/", results)
@@ -125,23 +114,21 @@ def _walk_directory(
         entry = raw[i * 32 : (i + 1) * 32]
 
         first_byte = entry[0]
-        # 0x00 = không còn entry tiếp → dừng
-        if first_byte == 0x00:
+        
+        if first_byte == 0x00: # End of directory
             break
-        # 0xE5 = entry đã xoá → bỏ qua
-        if first_byte == 0xE5:
+       
+        if first_byte == 0xE5: # Deleted entry
             lfn_parts.clear()
             continue
 
         attr = entry[11]
 
-        # ── LFN entry (attr == 0x0F) ──
         if attr == 0x0F:
-            order = first_byte & 0x3F       # số thứ tự LFN (1-based, ngược)
+            order = first_byte & 0x3F      
             lfn_parts.append((order, _parse_lfn_chars(entry)))
             continue
 
-        # ── Short entry: file hoặc thư mục ──
 
         # Bỏ qua Volume Label (attr bit 3)
         if attr & 0x08:

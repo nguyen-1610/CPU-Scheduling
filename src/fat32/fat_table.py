@@ -1,9 +1,3 @@
-"""
-fat_table.py – Đọc bảng FAT32 vào RAM, theo dõi cluster chain.
-
-FAT32: mỗi entry = 4 byte, 28 bit thấp chứa giá trị cluster tiếp theo.
-"""
-
 from __future__ import annotations
 
 import struct
@@ -36,10 +30,6 @@ class FATTable:
 
     # ------------------------------------------------------------------
     def next_cluster(self, cluster: int) -> Optional[int]:
-        """
-        Trả về cluster tiếp theo trong chain.
-        ``None`` nếu là EOC hoặc Bad.
-        """
         if cluster < 2 or cluster >= len(self._entries):
             return None
         val = self._entries[cluster]
@@ -65,10 +55,7 @@ class FATTable:
         data_start_lba: int,
         sec_per_clus: int,
     ) -> bytes:
-        """
-        Đọc toàn bộ nội dung (bytes) của một cluster chain.
-        Tiện dùng để đọc directory entries hoặc nội dung file.
-        """
+        
         chain = self.get_chain(start_cluster)
         bps = reader.bytes_per_sector
         parts: List[bytes] = []

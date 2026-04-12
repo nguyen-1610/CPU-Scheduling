@@ -1,15 +1,3 @@
-"""
-main_window.py – Cửa sổ chính của ứng dụng Lab 02.
-
-Bố cục:
-    ┌──────────────────────────────────────┐
-    │  [Drive: ___E___]  [Connect]         │
-    ├──────────────────────────────────────┤
-    │  Tab "Boot Sector"  │  Tab "TXT Files" │
-    │                     │                │
-    └──────────────────────────────────────┘
-"""
-
 from __future__ import annotations
 
 import sys
@@ -55,9 +43,6 @@ class MainWindow(QMainWindow):
         self._build_ui()
         self.statusBar().showMessage("Nhấn Detect USB để tìm ổ FAT32, hoặc nhập path thủ công.")
 
-    # ==================================================================
-    #  Build UI
-    # ==================================================================
     def _build_ui(self) -> None:
         central = QWidget()
         self.setCentralWidget(central)
@@ -120,9 +105,6 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(self._tabs)
 
-    # ==================================================================
-    #  macOS: Auto-detect FAT32 USB devices
-    # ==================================================================
     def _on_detect_usb(self) -> None:
         """Sử dụng macos_utils để tìm các ổ FAT32."""
         self._device_combo.clear()
@@ -136,10 +118,6 @@ class MainWindow(QMainWindow):
         else:
             self.statusBar().showMessage(f"Tìm thấy {len(devices)} ổ USB FAT32. Chọn ổ rồi nhấn Connect.")
 
-
-    # ==================================================================
-    #  Connect handler
-    # ==================================================================
     def _on_connect(self) -> None:
         # Lấy device path từ combo box (userData) hoặc text nhập tay
         idx = self._device_combo.currentIndex()
@@ -235,9 +213,6 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Lỗi không xác định", str(e))
             self.statusBar().showMessage(f"Lỗi: {e}")
 
-    # ==================================================================
-    #  Public API cho các tab
-    # ==================================================================
     @property
     def reader(self) -> Optional[DiskReader]:
         return self._reader
@@ -250,7 +225,6 @@ class MainWindow(QMainWindow):
     def boot_info(self) -> Dict[str, Any]:
         return self._boot_info
 
-    # ==================================================================
     def closeEvent(self, event) -> None:
         if self._reader is not None:
             try:
