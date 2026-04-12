@@ -41,17 +41,25 @@ def parse_fat_date(raw: int) -> str:
 
 
 def parse_fat_time(raw_hms: int, raw_ms: int = 0) -> str:
+    """
+    Giải mã giờ theo tài liệu riêng của Lab: 24-bit (3 byte tại offset 0Dh).
+    Cấu trúc: Giờ (5 bit), Phút (6 bit), Giây (6 bit), Mili giây (7 bit).
+    """
     if raw_hms == 0 and raw_ms == 0:
         return "N/A"
     
-    h = (raw_hms >> 11) & 0x1F
-    m = (raw_hms >> 5) & 0x3F
-    s = (raw_hms & 0x1F) * 2
+    # Gộp 3 byte thành số nguyên 24-bit (0D là byte thấp nhất)
+    # v = [Byte 0F][Byte 0E][Byte 0D]
+    v = raw_ms | (raw_hms << 8)
     
-    s += (raw_ms // 100)
-    ms = (raw_ms % 100) * 10
+    # Trích xuất bit theo tài liệu:
+    ms_val = v & 0x7F           # 7 bit (0-6)
+    s      = (v >> 7) & 0x3F    # 6 bit (7-12)
+    m      = (v >> 13) & 0x3F   # 6 bit (13-18)
+    h      = (v >> 19) & 0x1F   # 5 bit (19-23)
     
-    return f"{h:02d}:{m:02d}:{s:02d}.{ms:03d}"
+    # Thông thường 7 bit milli giây lưu đơn vị 10ms (0-99)
+    return f"{h:02d}:{m:02d}:{s:02d}.{ms_val*10:03d}"
 
 
 def _parse_short_name(entry: bytes) -> str:
