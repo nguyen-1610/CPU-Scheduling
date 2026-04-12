@@ -75,14 +75,6 @@ def run_scheduling(
             # dùng cho việc đánh giá ngắt (preempt) (nếu chiến lược là SRTN thì cần quan tâm).
             nextArrivalTime = peek_next_arrival_time(notArrived, qId)
 
-            # SRTN cần đảm bảo process mới cùng queue được admit trước khi chọn lịch.
-            # Guard: nếu admit không giảm notArrived (process đến thuộc queue khác), không continue.
-            if policyName == "SRTN":
-                if nextArrivalTime is not None and nextArrivalTime == t:
-                    prev_len = len(notArrived)
-                    admit_new_processes(t, notArrived, readyLists, queueIndex)
-                    if len(notArrived) < prev_len:
-                        continue
 
             t, budget = policyRunner(
                 qId,
