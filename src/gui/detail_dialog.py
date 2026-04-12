@@ -42,7 +42,7 @@ class DetailDialog(QDialog):
         info_form.addRow("Ten file:", QLabel(entry.name))
         info_form.addRow("Duong dan:", QLabel(entry.path))
         info_form.addRow("Ngay tao:", QLabel(parse_fat_date(entry.crt_date)))
-        info_form.addRow("Gio tao:", QLabel(parse_fat_time(entry.crt_time)))
+        info_form.addRow("Gio tao:", QLabel(parse_fat_time(entry.crt_time, entry.crt_ms)))
         info_form.addRow("Kich thuoc:", QLabel(f"{entry.size} bytes"))
         layout.addWidget(info_box)
 

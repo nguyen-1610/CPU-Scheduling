@@ -27,6 +27,7 @@ class FileEntry:
     first_cluster: int      # Cluster đầu tiên
     crt_date: int           # Raw 2-byte ngày tạo
     crt_time: int           # Raw 2-byte giờ tạo
+    crt_ms: int             # Raw 1-byte phần mười giây (offset 0D)
 
 
 def parse_fat_date(raw: int) -> str:
@@ -39,14 +40,18 @@ def parse_fat_date(raw: int) -> str:
     return f"{day:02d}/{month:02d}/{year}"
 
 
-def parse_fat_time(raw: int) -> str:
-    """Giải mã raw 2-byte FAT time → 'HH:MM:SS'."""
-    if raw == 0:
+def parse_fat_time(raw_hms: int, raw_ms: int = 0) -> str:
+    if raw_hms == 0 and raw_ms == 0:
         return "N/A"
-    sec  = (raw & 0x1F) * 2
-    mins = (raw >> 5) & 0x3F
-    hour = (raw >> 11) & 0x1F
-    return f"{hour:02d}:{mins:02d}:{sec:02d}"
+    
+    h = (raw_hms >> 11) & 0x1F
+    m = (raw_hms >> 5) & 0x3F
+    s = (raw_hms & 0x1F) * 2
+    
+    s += (raw_ms // 100)
+    ms = (raw_ms % 100) * 10
+    
+    return f"{h:02d}:{m:02d}:{s:02d}.{ms:03d}"
 
 
 def _parse_short_name(entry: bytes) -> str:
@@ -175,6 +180,7 @@ def _walk_directory(
         file_size = struct.unpack_from("<I", entry, 28)[0]
         crt_time  = struct.unpack_from("<H", entry, 14)[0]
         crt_date  = struct.unpack_from("<H", entry, 16)[0]
+        crt_ms    = entry[13] # Offset 0x0D: CrtTimeTenth
 
         # Lọc chỉ lấy .txt (không phân biệt hoa thường)
         # Bỏ qua các file metadata của macOS (AppleDouble starting with '._')
@@ -187,4 +193,5 @@ def _walk_directory(
                 first_cluster=first_cluster,
                 crt_date=crt_date,
                 crt_time=crt_time,
+                crt_ms=crt_ms,
             ))
